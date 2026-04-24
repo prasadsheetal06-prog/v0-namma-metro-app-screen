@@ -1,5 +1,6 @@
 "use client"
 
+import { useRouter } from "next/navigation"
 import {
   User,
   Globe,
@@ -17,6 +18,8 @@ import {
 } from "lucide-react"
 
 export default function NammaMetro() {
+  const router = useRouter()
+  
   const tiles = [
     { icon: Wallet, label: "Top Up" },
     { icon: QrCode, label: "QR Tickets" },
@@ -56,10 +59,11 @@ export default function NammaMetro() {
             {tiles.map((tile, index) => (
               <div
                 key={index}
+                onClick={() => tile.isNew && router.push("/plan-journey")}
                 className={`
                   aspect-square rounded-xl flex flex-col items-center justify-center gap-2 relative
                   ${tile.icon ? "bg-white shadow-sm" : "bg-white shadow-sm"}
-                  ${tile.isNew ? "border-2 border-[#E9D5FF]" : ""}
+                  ${tile.isNew ? "border-2 border-[#E9D5FF] cursor-pointer" : ""}
                 `}
               >
                 {tile.isNew && (
