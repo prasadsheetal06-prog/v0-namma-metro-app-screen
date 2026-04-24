@@ -22,14 +22,22 @@ import {
 export default function NammaMetro() {
   const [currentScreen, setCurrentScreen] = useState<"home" | "plan-journey">("home")
   const [showToast, setShowToast] = useState(false)
+  const [toastMessage, setToastMessage] = useState("Feature available in current app")
   const [showResults, setShowResults] = useState(false)
   const [showInputCard, setShowInputCard] = useState(true)
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
   const [isButtonPressed, setIsButtonPressed] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
+  const [showMapModal, setShowMapModal] = useState(false)
+  const [mapModalType, setMapModalType] = useState<"from" | "to">("from")
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
+
+  const showToastMessage = (message: string) => {
+    setToastMessage(message)
+    setShowToast(true)
+  }
 
   useEffect(() => {
     if (showToast) {
@@ -40,16 +48,16 @@ export default function NammaMetro() {
     }
   }, [showToast])
 
-  // Step mapping: Walk(0), Metro(1), Change(2), Exit(3), Ride(4)
-  // Cards: Walk to Station(0), Board Metro(1), Interchange(2), Peak Hour(3), Exit(4), Last Mile(5)
-  const cardToStepMap = [0, 1, 2, 3, 4, 4] // Last two cards map to step 4 (Ride)
+  // Step mapping: Walk(0), Metro1(1), Change(2), Metro2(3), Exit(4), Ride(5)
+  // Cards map 1:1 to steps now
+  const cardToStepMap = [0, 1, 2, 3, 4, 5]
 
   useEffect(() => {
     const container = scrollContainerRef.current
     if (!container || !showResults) return
 
     const handleScroll = () => {
-      const containerTop = container.scrollTop + 100 // offset for header
+      const containerTop = container.scrollTop + 100
       let newActiveStep = 0
 
       cardRefs.current.forEach((card, index) => {
@@ -72,7 +80,7 @@ export default function NammaMetro() {
     if (isNew) {
       setCurrentScreen("plan-journey")
     } else {
-      setShowToast(true)
+      showToastMessage("Feature available in current app")
     }
   }
 
@@ -86,6 +94,7 @@ export default function NammaMetro() {
   const handleBack = () => {
     if (showResults) {
       setShowResults(false)
+      setActiveStep(0)
       setTimeout(() => {
         setShowInputCard(true)
       }, 100)
@@ -98,6 +107,24 @@ export default function NammaMetro() {
     const temp = from
     setFrom(to)
     setTo(temp)
+  }
+
+  const handleOpenMaps = (message: string) => {
+    showToastMessage(message)
+  }
+
+  const openMapModal = (type: "from" | "to") => {
+    setMapModalType(type)
+    setShowMapModal(true)
+  }
+
+  const confirmMapLocation = () => {
+    if (mapModalType === "from") {
+      setFrom("📍 Location pinned")
+    } else {
+      setTo("📍 Location pinned")
+    }
+    setShowMapModal(false)
   }
   
   const tiles = [
@@ -112,53 +139,9 @@ export default function NammaMetro() {
     { icon: Route, label: "Plan Journey", isNew: true },
   ]
 
-  const CoachDiagram = () => (
-    <div className="space-y-2">
-      <div className="flex w-full">
-        {[
-          { num: 1, color: "#DC2626", dots: 4, rounded: "rounded-l-lg" },
-          { num: 2, color: "#F59E0B", dots: 3, rounded: "" },
-          { num: 3, color: "#16A34A", dots: 1, rounded: "" },
-          { num: 4, color: "#16A34A", dots: 1, rounded: "" },
-          { num: 5, color: "#F59E0B", dots: 2, rounded: "" },
-          { num: 6, color: "#DC2626", dots: 3, rounded: "rounded-r-lg" },
-        ].map((coach) => (
-          <div key={coach.num} className="flex-1 flex flex-col items-center">
-            <div
-              className={`w-full h-8 flex items-center justify-center text-white font-bold text-sm ${coach.rounded}`}
-              style={{ backgroundColor: coach.color }}
-            >
-              {coach.num}
-            </div>
-            <div className="flex gap-0.5 mt-1">
-              {Array.from({ length: coach.dots }).map((_, i) => (
-                <div
-                  key={i}
-                  className="w-1.5 h-1.5 rounded-full"
-                  style={{ backgroundColor: coach.color }}
-                />
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] text-gray-500">← Direction of travel</span>
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-[#16A34A]"></div>
-            <span className="text-[10px] text-gray-500">Low</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-[#F59E0B]"></div>
-            <span className="text-[10px] text-gray-500">Moderate</span>
-          </div>
-          <div className="flex items-center gap-1">
-            <div className="w-2 h-2 rounded-full bg-[#DC2626]"></div>
-            <span className="text-[10px] text-gray-500">High</span>
-          </div>
-        </div>
-      </div>
+  const StepNumber = ({ number }: { number: number }) => (
+    <div className="w-6 h-6 rounded-full bg-[#6B21A8] flex items-center justify-center flex-shrink-0">
+      <span className="text-white text-xs font-bold">{number}</span>
     </div>
   )
 
@@ -166,7 +149,7 @@ export default function NammaMetro() {
     <div className="min-h-screen bg-[#F0EDF5] flex items-center justify-center p-4">
       <div className="w-full max-w-[390px] bg-[#F0EDF5] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
         
-        {/* HOME SCREEN - Always rendered, visibility controlled by opacity */}
+        {/* HOME SCREEN */}
         <div 
           className={`absolute inset-0 flex flex-col transition-opacity duration-200 ease-out ${
             currentScreen === "home" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
@@ -188,10 +171,7 @@ export default function NammaMetro() {
 
           {/* Main Content */}
           <main className="flex-1 px-4 pb-24 bg-[#F0EDF5]">
-            {/* Section Label */}
             <h2 className="text-gray-700 font-semibold text-lg py-4">Travel</h2>
-
-            {/* Tile Grid */}
             <div className="grid grid-cols-3 gap-3">
               {tiles.map((tile, index) => (
                 <div
@@ -248,7 +228,7 @@ export default function NammaMetro() {
           </div>
         </div>
 
-        {/* PLAN JOURNEY SCREEN - Always rendered, visibility controlled by opacity */}
+        {/* PLAN JOURNEY SCREEN */}
         <div 
           className={`absolute inset-0 flex flex-col transition-opacity duration-200 ease-out ${
             currentScreen === "plan-journey" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
@@ -281,9 +261,14 @@ export default function NammaMetro() {
                     onChange={(e) => setFrom(e.target.value)}
                     className="w-full text-sm py-2 outline-none placeholder:text-gray-400 border-b border-transparent focus:border-[#6B21A8] transition-colors"
                   />
+                  <button 
+                    onClick={() => openMapModal("from")}
+                    className="text-[11px] text-[#9CA3AF] cursor-pointer"
+                  >
+                    📍 Pin your location on map →
+                  </button>
                 </div>
                 
-                {/* Swap Button */}
                 <button 
                   onClick={handleSwap}
                   className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#F3E8FF] rounded-full flex items-center justify-center"
@@ -300,6 +285,12 @@ export default function NammaMetro() {
                     onChange={(e) => setTo(e.target.value)}
                     className="w-full text-sm py-2 outline-none placeholder:text-gray-400 border-b border-transparent focus:border-[#6B21A8] transition-colors"
                   />
+                  <button 
+                    onClick={() => openMapModal("to")}
+                    className="text-[11px] text-[#9CA3AF] cursor-pointer"
+                  >
+                    📍 Pin destination on map →
+                  </button>
                 </div>
               </div>
               <div className="pt-3">
@@ -311,24 +302,24 @@ export default function NammaMetro() {
                   className="w-full bg-[#6B21A8] text-white font-medium py-3 rounded-xl transition-transform duration-100"
                   style={{ transform: isButtonPressed ? "scale(0.98)" : "scale(1)" }}
                 >
-                  Plan My Journey →
+                  Plan My Journey
                 </button>
               </div>
               <p className="text-center text-xs text-gray-400 mt-3">
-                e.g. Koramangala → Orion Mall
+                e.g. Koramangala to Orion Mall
               </p>
             </div>
 
             {/* Results Section */}
             {showResults && (
               <>
-                {/* Stepper Bar */}
+                {/* Stepper Bar - 6 dots */}
                 <div 
                   className="mx-4 mb-3 bg-white rounded-[16px] p-3 animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0s" }}
                 >
-                  <div className="flex items-center justify-between px-2">
-                    {["Walk", "Metro", "Change", "Exit", "Ride"].map((label, index) => {
+                  <div className="flex items-center justify-between px-1">
+                    {["Walk", "Metro 1", "Change", "Metro 2", "Exit", "Ride"].map((label, index) => {
                       const isActive = index <= activeStep
                       return (
                         <div key={label} className="flex flex-col items-center relative">
@@ -339,12 +330,12 @@ export default function NammaMetro() {
                                 : "w-2 h-2 border-2 border-gray-300 bg-white"
                             }`}
                           ></div>
-                          <span className={`text-[9px] mt-1 ${isActive ? "text-[#6B21A8] font-medium" : "text-gray-400"}`}>
+                          <span className={`text-[9px] mt-1 whitespace-nowrap ${isActive ? "text-[#6B21A8] font-medium" : "text-gray-400"}`}>
                             {label}
                           </span>
-                          {index < 4 && (
+                          {index < 5 && (
                             <div 
-                              className={`absolute top-[6px] left-[16px] w-[calc(100%+16px)] h-[2px] ${
+                              className={`absolute top-[6px] left-[14px] w-[calc(100%+8px)] h-[2px] ${
                                 index < activeStep ? "bg-[#6B21A8]" : "bg-gray-200"
                               }`}
                             ></div>
@@ -365,6 +356,7 @@ export default function NammaMetro() {
                   <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        <StepNumber number={1} />
                         <span className="text-lg">🚶</span>
                         <span className="font-bold text-sm">Walk to Station</span>
                       </div>
@@ -372,14 +364,19 @@ export default function NammaMetro() {
                         5 min
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">
-                      Bommanahalli Station · Gate 2, North entrance
+                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                      Head to Gate 2 — look for the Namma Metro purple sign. It is 400m away, about a 5 minute walk straight ahead from your location.
                     </p>
-                    <p className="text-xs text-gray-500">400m · approx 5 min walk</p>
+                    <button 
+                      onClick={() => handleOpenMaps("Opening Google Maps for Gate 2 directions...")}
+                      className="w-full py-2 border border-[#6B21A8] text-[#6B21A8] rounded-xl text-sm font-medium bg-white"
+                    >
+                      📍 Open walking route in Google Maps
+                    </button>
                   </div>
                 </div>
 
-                {/* Card 2 - Board Metro */}
+                {/* Card 2 - Board Metro (Purple Line) */}
                 <div 
                   ref={(el) => { cardRefs.current[1] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
@@ -389,6 +386,7 @@ export default function NammaMetro() {
                   <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        <StepNumber number={2} />
                         <span className="text-lg">🚇</span>
                         <span className="font-bold text-sm">Board Metro</span>
                       </div>
@@ -396,13 +394,18 @@ export default function NammaMetro() {
                         Platform 2
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">
-                      Purple Line → towards Mysore Road
+                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                      Get on the Purple Line train going towards Mysore Road. Board from the middle of the platform for easier access.
                     </p>
-                    <p className="text-xs text-gray-500 mb-3">
-                      Board MIDDLE coaches — Coach 3 or 4
-                    </p>
-                    <CoachDiagram />
+                    {/* Train Timing Box */}
+                    <div className="bg-white border-l-4 border-[#6B21A8] rounded-lg p-3" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
+                      <span className="inline-block bg-[#F3E8FF] rounded-lg px-3 py-1.5">
+                        <span className="text-[#6B21A8] font-bold text-[15px]">🕐 Next train: 3 min</span>
+                      </span>
+                      <p className="text-gray-500 text-xs mt-2">Then every 6 min after that</p>
+                      <p className="text-[#D97706] text-[11px] italic mt-1">Tip: Trains from Whitefield are less crowded at peak hour</p>
+                    </div>
+                    <p className="text-[10px] text-[#9CA3AF] mt-2">Fare: ₹57 stored value card · ₹60 token</p>
                   </div>
                 </div>
 
@@ -410,12 +413,13 @@ export default function NammaMetro() {
                 <div 
                   ref={(el) => { cardRefs.current[2] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.25s" }}
+                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.3s" }}
                 >
                   <div className="w-1 bg-[#7C3AED] self-stretch"></div>
                   <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        <StepNumber number={3} />
                         <span className="text-lg">🔄</span>
                         <span className="font-bold text-sm">Interchange at Silk Board</span>
                       </div>
@@ -423,39 +427,45 @@ export default function NammaMetro() {
                         3 min
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">
-                      Change to Yellow Line — Platform 1, ground level
+                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                      When you get off at Silk Board, follow the YELLOW signs on the ceiling. Walk straight for about 3 minutes to reach Platform 1 downstairs.
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Follow yellow signs · 3 min walk between platforms
-                    </p>
+                    <button 
+                      onClick={() => handleOpenMaps("Opening station map for Silk Board interchange...")}
+                      className="w-full py-2 border border-[#6B21A8] text-[#6B21A8] rounded-xl text-sm font-medium bg-white"
+                    >
+                      📍 Show me the way to Platform 1
+                    </button>
                   </div>
                 </div>
 
-                {/* Card 4 - Peak Hour Alert */}
+                {/* Card 4 - Board Yellow Line */}
                 <div 
                   ref={(el) => { cardRefs.current[3] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.35s" }}
+                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.4s" }}
                 >
-                  <div className="w-1 bg-[#F59E0B] self-stretch"></div>
+                  <div className="w-1 bg-[#6B21A8] self-stretch"></div>
                   <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">⚠️</span>
-                        <span className="font-bold text-sm">Peak Hour Alert</span>
+                        <StepNumber number={4} />
+                        <span className="text-lg">🚇</span>
+                        <span className="font-bold text-sm">Board Yellow Line</span>
                       </div>
-                      <span className="text-xs bg-[#FEF3C7] text-[#D97706] px-2 py-1 rounded-full">
-                        8:45 AM
+                      <span className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                        Platform 1
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">
-                      Avoid Coach 1 — high crowd near entry gate
+                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
+                      Board the Yellow Line — it is the yellow colored train. Stay on for 4 stops and get off when you hear Mantri Square announced.
                     </p>
-                    <p className="text-xs text-gray-500 mb-3">
-                      Best boarding: Coach 3 or 4
+                    <span className="inline-block bg-[#F3E8FF] rounded-lg px-3 py-1.5">
+                      <span className="text-[#6B21A8] font-bold text-[15px]">🕐 Next train: 3 min</span>
+                    </span>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Then every 8 min after that
                     </p>
-                    <CoachDiagram />
                   </div>
                 </div>
 
@@ -463,12 +473,13 @@ export default function NammaMetro() {
                 <div 
                   ref={(el) => { cardRefs.current[4] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.45s" }}
+                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.5s" }}
                 >
                   <div className="w-1 bg-[#16A34A] self-stretch"></div>
                   <div className="flex-1 p-4">
                     <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
+                        <StepNumber number={5} />
                         <span className="text-lg">🚪</span>
                         <span className="font-bold text-sm">Exit Recommendation</span>
                       </div>
@@ -476,11 +487,8 @@ export default function NammaMetro() {
                         Saves 5 min
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 mb-1">
-                      Alight at Mantri Square · Use Exit 3, West Side
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      200m to destination · Exit 1 adds 700m extra
+                    <p className="text-xs text-gray-600 leading-relaxed">
+                      When you get off the train, walk towards Exit 3 — look for the exit sign with the Orion Mall logo. It is the closest exit to your destination and saves you 5 minutes of extra walking.
                     </p>
                   </div>
                 </div>
@@ -489,28 +497,32 @@ export default function NammaMetro() {
                 <div 
                   ref={(el) => { cardRefs.current[5] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
-                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.55s" }}
+                  style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.6s" }}
                 >
                   <div className="w-1 bg-[#0EA5E9] self-stretch"></div>
                   <div className="flex-1 p-4">
-                    <div className="flex items-center gap-2 mb-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <StepNumber number={6} />
                       <span className="text-lg">🛵</span>
                       <span className="font-bold text-sm">Last Mile Options</span>
                     </div>
+                    <p className="text-xs text-gray-600 mb-3">
+                      You have reached the station. Here are your options to get to Orion Mall.
+                    </p>
 
-                    {/* Row 1 - Rapido */}
+                    {/* Row 1 - Namma Yatri Bike */}
                     <div className="flex items-center justify-between py-2 px-2 rounded-lg bg-[#F0FDF4]">
                       <div className="flex items-center gap-2">
                         <span>🛵</span>
-                        <span className="text-sm">Rapido Bike</span>
+                        <span className="text-sm">Namma Yatri Bike</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-500">4 min</span>
-                        <span className="text-sm font-bold">₹38</span>
+                        <span className="text-sm font-bold">₹35</span>
                         <span className="text-[10px] bg-[#DCFCE7] text-[#16A34A] px-2 py-0.5 rounded-full">
                           Cheapest
                         </span>
-                        <button className="text-xs bg-[#6B21A8] text-white px-3 py-1 rounded-full">
+                        <button className="text-xs bg-[#F97316] text-white px-3 py-1 rounded-full">
                           Book →
                         </button>
                       </div>
@@ -518,16 +530,16 @@ export default function NammaMetro() {
 
                     <div className="border-t border-gray-100 my-1"></div>
 
-                    {/* Row 2 - Ola Auto */}
+                    {/* Row 2 - Namma Yatri Auto */}
                     <div className="flex items-center justify-between py-2">
                       <div className="flex items-center gap-2">
                         <span>🚗</span>
-                        <span className="text-sm">Ola Auto</span>
+                        <span className="text-sm">Namma Yatri Auto</span>
                       </div>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-gray-500">6 min</span>
-                        <span className="text-sm font-bold">₹65</span>
-                        <button className="text-xs border border-[#6B21A8] text-[#6B21A8] px-3 py-1 rounded-full">
+                        <span className="text-xs text-gray-500">7 min</span>
+                        <span className="text-sm font-bold">₹58</span>
+                        <button className="text-xs border border-[#F97316] text-[#F97316] px-3 py-1 rounded-full">
                           Book →
                         </button>
                       </div>
@@ -549,6 +561,10 @@ export default function NammaMetro() {
                         </span>
                       </div>
                     </div>
+
+                    <p className="text-[11px] text-gray-400 mt-2">
+                      Namma Yatri fares are estimates via ONDC
+                    </p>
                   </div>
                 </div>
               </>
@@ -561,40 +577,65 @@ export default function NammaMetro() {
               showResults ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
             }`}
           >
-            {/* White top divider */}
             <div className="h-px bg-white/30"></div>
-            
-            {/* Stat Bar */}
             <div className="flex h-14">
-              {/* Time Section */}
               <div className="flex-1 flex flex-col items-center justify-center border-r border-white/20">
                 <span className="text-[10px] text-gray-200">Duration</span>
-                <span className="text-white font-bold text-sm">28 min</span>
+                <span className="text-white font-bold text-sm">28 min total</span>
               </div>
-              
-              {/* Cost Section */}
               <div className="flex-1 flex flex-col items-center justify-center border-r border-white/20">
-                <span className="text-[10px] text-gray-200">Cost</span>
-                <span className="text-white font-bold text-sm">₹38–65</span>
+                <span className="text-[10px] text-gray-200">Breakdown</span>
+                <span className="text-white font-bold text-sm">Metro ₹57 + Last mile ₹35</span>
               </div>
-              
-              {/* Savings Section */}
               <div className="flex-1 flex flex-col items-center justify-center">
-                <span className="text-[10px] text-gray-200">vs Direct Ola</span>
-                <span className="text-white font-bold text-sm">Save ₹172</span>
+                <span className="text-[10px] text-gray-200">Total</span>
+                <span className="text-white font-bold text-sm">₹92</span>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Toast Message - Shared across screens */}
+        {/* Toast Message */}
         <div
-          className={`absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1F2937] text-white text-[13px] px-5 py-2.5 rounded-xl transition-all duration-300 z-50 ${
+          className={`absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1F2937] text-white text-[13px] px-5 py-2.5 rounded-xl transition-all duration-300 z-50 whitespace-nowrap ${
             showToast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           }`}
         >
-          Feature available in current app
+          {toastMessage}
         </div>
+
+        {/* Map Modal */}
+        {showMapModal && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center">
+            {/* Overlay */}
+            <div 
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setShowMapModal(false)}
+            ></div>
+            {/* Modal Card */}
+            <div className="relative bg-white w-[300px] rounded-2xl p-5">
+              <h3 className="font-bold text-sm mb-4">Pin Your Location</h3>
+              <div className="w-full h-40 bg-[#EDE9FE] rounded-xl flex flex-col items-center justify-center">
+                <span className="text-4xl mb-2">📍</span>
+                <span className="text-xs text-gray-500">Tap anywhere to drop a pin</span>
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button 
+                  onClick={() => setShowMapModal(false)}
+                  className="flex-1 py-2 border border-gray-300 text-gray-600 rounded-full text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmMapLocation}
+                  className="flex-1 py-2 bg-[#6B21A8] text-white rounded-full text-sm"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Custom Animation Styles */}
