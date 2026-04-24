@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import {
   User,
@@ -19,6 +20,24 @@ import {
 
 export default function NammaMetro() {
   const router = useRouter()
+  const [showToast, setShowToast] = useState(false)
+
+  useEffect(() => {
+    if (showToast) {
+      const timer = setTimeout(() => {
+        setShowToast(false)
+      }, 2000)
+      return () => clearTimeout(timer)
+    }
+  }, [showToast])
+
+  const handleTileClick = (isNew: boolean | undefined) => {
+    if (isNew) {
+      router.push("/plan-journey")
+    } else {
+      setShowToast(true)
+    }
+  }
   
   const tiles = [
     { icon: Wallet, label: "Top Up" },
@@ -34,7 +53,7 @@ export default function NammaMetro() {
 
   return (
     <div className="min-h-screen bg-[#F5F3F7] flex items-center justify-center p-4">
-      <div className="w-full max-w-[390px] bg-[#F5F3F7] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl">
+      <div className="w-full max-w-[390px] bg-[#F5F3F7] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
         {/* Header */}
         <header className="bg-[#6B21A8] px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -59,11 +78,11 @@ export default function NammaMetro() {
             {tiles.map((tile, index) => (
               <div
                 key={index}
-                onClick={() => tile.isNew && router.push("/plan-journey")}
+                onClick={() => handleTileClick(tile.isNew)}
                 className={`
-                  aspect-square rounded-xl flex flex-col items-center justify-center gap-2 relative
+                  aspect-square rounded-xl flex flex-col items-center justify-center gap-2 relative cursor-pointer
                   ${tile.icon ? "bg-white shadow-sm" : "bg-white shadow-sm"}
-                  ${tile.isNew ? "border-2 border-[#E9D5FF] cursor-pointer" : ""}
+                  ${tile.isNew ? "border-2 border-[#E9D5FF]" : ""}
                 `}
               >
                 {tile.isNew && (
@@ -92,7 +111,7 @@ export default function NammaMetro() {
         </main>
 
         {/* Bottom Bar */}
-        <div className="fixed bottom-0 left-0 right-0 flex justify-center p-4 pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 flex justify-center p-4 pointer-events-none">
           <div className="w-full max-w-[358px] bg-[#3B0764] rounded-full px-6 py-4 flex items-center justify-between pointer-events-auto">
             <button className="flex items-center gap-2 text-white">
               <Ticket className="w-5 h-5" strokeWidth={1.5} />
@@ -103,6 +122,15 @@ export default function NammaMetro() {
               <span className="text-sm font-medium">Purchase</span>
             </button>
           </div>
+        </div>
+
+        {/* Toast Message */}
+        <div
+          className={`absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-sm px-4 py-2 rounded-lg transition-all duration-300 ${
+            showToast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+          }`}
+        >
+          Feature available in current app
         </div>
       </div>
     </div>

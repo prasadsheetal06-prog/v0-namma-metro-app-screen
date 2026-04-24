@@ -7,11 +7,26 @@ import { ArrowLeft } from "lucide-react"
 export default function PlanJourney() {
   const router = useRouter()
   const [showResults, setShowResults] = useState(false)
+  const [showInputCard, setShowInputCard] = useState(true)
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
 
   const handlePlanJourney = () => {
-    setShowResults(true)
+    setShowInputCard(false)
+    setTimeout(() => {
+      setShowResults(true)
+    }, 200)
+  }
+
+  const handleBack = () => {
+    if (showResults) {
+      setShowResults(false)
+      setTimeout(() => {
+        setShowInputCard(true)
+      }, 100)
+    } else {
+      router.push("/")
+    }
   }
 
   const CoachDiagram = () => (
@@ -59,7 +74,7 @@ export default function PlanJourney() {
       <div className="w-full max-w-[390px] bg-[#F5F3F7] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
         {/* Header */}
         <header className="bg-[#6B21A8] px-4 py-4 flex items-center gap-3">
-          <button onClick={() => router.back()} className="text-white">
+          <button onClick={handleBack} className="text-white">
             <ArrowLeft className="w-6 h-6" strokeWidth={2} />
           </button>
           <h1 className="text-white font-semibold text-lg">Plan Journey</h1>
@@ -68,7 +83,11 @@ export default function PlanJourney() {
         {/* Scrollable Content */}
         <div className="flex-1 overflow-y-auto pb-[128px]">
           {/* Input Card */}
-          <div className="m-4 bg-white rounded-2xl shadow-md p-4">
+          <div 
+            className={`m-4 bg-white rounded-2xl shadow-md p-4 transition-opacity duration-200 ${
+              showInputCard ? "opacity-100" : "opacity-0 hidden"
+            }`}
+          >
             <div className="space-y-1">
               <label className="text-xs text-gray-500">From</label>
               <input
@@ -107,7 +126,10 @@ export default function PlanJourney() {
           {showResults && (
             <>
               {/* Stepper Bar */}
-              <div className="mx-4 mb-3 bg-white rounded-2xl p-3">
+              <div 
+                className="mx-4 mb-3 bg-white rounded-2xl p-3 animate-fade-in-up"
+                style={{ animationDelay: "0s" }}
+              >
                 <div className="flex items-center justify-between px-2">
                   {["Walk", "Metro", "Change", "Exit", "Ride"].map((label, index) => (
                     <div key={label} className="flex flex-col items-center relative">
@@ -122,7 +144,10 @@ export default function PlanJourney() {
               </div>
 
               {/* Card 1 - Walk to Station */}
-              <div className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex">
+              <div 
+                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
+                style={{ animationDelay: "0.1s" }}
+              >
                 <div className="w-1 bg-[#6B21A8]"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -142,7 +167,10 @@ export default function PlanJourney() {
               </div>
 
               {/* Card 2 - Board Metro */}
-              <div className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex">
+              <div 
+                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
+                style={{ animationDelay: "0.2s" }}
+              >
                 <div className="w-1 bg-[#6B21A8]"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -165,7 +193,10 @@ export default function PlanJourney() {
               </div>
 
               {/* Card 3 - Peak Hour Alert */}
-              <div className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex">
+              <div 
+                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
+                style={{ animationDelay: "0.3s" }}
+              >
                 <div className="w-1 bg-[#F59E0B]"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -188,7 +219,10 @@ export default function PlanJourney() {
               </div>
 
               {/* Card 4 - Exit Recommendation */}
-              <div className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex">
+              <div 
+                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
+                style={{ animationDelay: "0.4s" }}
+              >
                 <div className="w-1 bg-[#16A34A]"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
@@ -210,7 +244,10 @@ export default function PlanJourney() {
               </div>
 
               {/* Card 5 - Last Mile Options */}
-              <div className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex">
+              <div 
+                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
+                style={{ animationDelay: "0.5s" }}
+              >
                 <div className="w-1 bg-[#0EA5E9]"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center gap-2 mb-3">
@@ -276,14 +313,34 @@ export default function PlanJourney() {
         </div>
 
         {/* Fixed Bottom Bar */}
-        {showResults && (
-          <div className="absolute bottom-0 left-0 right-0 bg-[#6B21A8] h-12 flex items-center justify-center">
-            <span className="text-white text-xs">
-              Total: 28 min · ₹38–65 · Save ₹172 vs direct Ola
-            </span>
-          </div>
-        )}
+        <div 
+          className={`absolute bottom-0 left-0 right-0 bg-[#6B21A8] h-12 flex items-center justify-center transition-all duration-300 ${
+            showResults ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+          }`}
+        >
+          <span className="text-white text-xs">
+            Total: 28 min · ₹38–65 · Save ₹172 vs direct Ola
+          </span>
+        </div>
       </div>
+
+      {/* Custom Animation Styles */}
+      <style jsx>{`
+        @keyframes fadeInUp {
+          from {
+            opacity: 0;
+            transform: translateY(16px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+        .animate-fade-in-up {
+          opacity: 0;
+          animation: fadeInUp 0.3s ease-out forwards;
+        }
+      `}</style>
     </div>
   )
 }
