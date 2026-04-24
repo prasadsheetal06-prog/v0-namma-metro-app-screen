@@ -13,6 +13,7 @@ import {
   Headphones,
   Route,
   Ticket,
+  History,
 } from "lucide-react"
 
 export default function NammaMetro() {
@@ -24,7 +25,7 @@ export default function NammaMetro() {
     { icon: Map, label: "Map" },
     { icon: Info, label: "Fare Info" },
     { icon: Headphones, label: "Support" },
-    { icon: null, label: "" },
+    { icon: History, label: "My Trips" },
     { icon: Route, label: "Plan Journey", isNew: true },
   ]
 
