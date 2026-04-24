@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import {
   User,
   Globe,
@@ -27,6 +27,9 @@ export default function NammaMetro() {
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
   const [isButtonPressed, setIsButtonPressed] = useState(false)
+  const [activeStep, setActiveStep] = useState(0)
+  const scrollContainerRef = useRef<HTMLDivElement>(null)
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
   useEffect(() => {
     if (showToast) {
@@ -36,6 +39,34 @@ export default function NammaMetro() {
       return () => clearTimeout(timer)
     }
   }, [showToast])
+
+  // Step mapping: Walk(0), Metro(1), Change(2), Exit(3), Ride(4)
+  // Cards: Walk to Station(0), Board Metro(1), Interchange(2), Peak Hour(3), Exit(4), Last Mile(5)
+  const cardToStepMap = [0, 1, 2, 3, 4, 4] // Last two cards map to step 4 (Ride)
+
+  useEffect(() => {
+    const container = scrollContainerRef.current
+    if (!container || !showResults) return
+
+    const handleScroll = () => {
+      const containerTop = container.scrollTop + 100 // offset for header
+      let newActiveStep = 0
+
+      cardRefs.current.forEach((card, index) => {
+        if (card) {
+          const cardTop = card.offsetTop - container.offsetTop
+          if (containerTop >= cardTop) {
+            newActiveStep = cardToStepMap[index]
+          }
+        }
+      })
+
+      setActiveStep(newActiveStep)
+    }
+
+    container.addEventListener("scroll", handleScroll)
+    return () => container.removeEventListener("scroll", handleScroll)
+  }, [showResults])
 
   const handleTileClick = (isNew: boolean | undefined) => {
     if (isNew) {
@@ -232,7 +263,7 @@ export default function NammaMetro() {
           </header>
 
           {/* Scrollable Content */}
-          <div className="flex-1 overflow-y-auto pb-[128px] bg-[#F0EDF5]">
+          <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pb-20 bg-[#F0EDF5]">
             {/* Input Card */}
             <div 
               className={`m-4 bg-white rounded-[16px] p-4 transition-all duration-[250ms] ease-out ${
@@ -297,20 +328,36 @@ export default function NammaMetro() {
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0s" }}
                 >
                   <div className="flex items-center justify-between px-2">
-                    {["Walk", "Metro", "Change", "Exit", "Ride"].map((label, index) => (
-                      <div key={label} className="flex flex-col items-center relative">
-                        <div className="w-2.5 h-2.5 rounded-full bg-[#6B21A8]"></div>
-                        <span className="text-[9px] text-gray-500 mt-1">{label}</span>
-                        {index < 4 && (
-                          <div className="absolute top-[5px] left-[14px] w-[calc(100%+20px)] h-[2px] bg-[#6B21A8]"></div>
-                        )}
-                      </div>
-                    ))}
+                    {["Walk", "Metro", "Change", "Exit", "Ride"].map((label, index) => {
+                      const isActive = index <= activeStep
+                      return (
+                        <div key={label} className="flex flex-col items-center relative">
+                          <div 
+                            className={`rounded-full transition-all duration-200 ${
+                              isActive 
+                                ? "w-3 h-3 bg-[#6B21A8]" 
+                                : "w-2 h-2 border-2 border-gray-300 bg-white"
+                            }`}
+                          ></div>
+                          <span className={`text-[9px] mt-1 ${isActive ? "text-[#6B21A8] font-medium" : "text-gray-400"}`}>
+                            {label}
+                          </span>
+                          {index < 4 && (
+                            <div 
+                              className={`absolute top-[6px] left-[16px] w-[calc(100%+16px)] h-[2px] ${
+                                index < activeStep ? "bg-[#6B21A8]" : "bg-gray-200"
+                              }`}
+                            ></div>
+                          )}
+                        </div>
+                      )
+                    })}
                   </div>
                 </div>
 
                 {/* Card 1 - Walk to Station */}
                 <div 
+                  ref={(el) => { cardRefs.current[0] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.1s" }}
                 >
@@ -334,6 +381,7 @@ export default function NammaMetro() {
 
                 {/* Card 2 - Board Metro */}
                 <div 
+                  ref={(el) => { cardRefs.current[1] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.2s" }}
                 >
@@ -360,6 +408,7 @@ export default function NammaMetro() {
 
                 {/* Card 3 - Interchange at Silk Board */}
                 <div 
+                  ref={(el) => { cardRefs.current[2] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.25s" }}
                 >
@@ -385,6 +434,7 @@ export default function NammaMetro() {
 
                 {/* Card 4 - Peak Hour Alert */}
                 <div 
+                  ref={(el) => { cardRefs.current[3] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.35s" }}
                 >
@@ -411,6 +461,7 @@ export default function NammaMetro() {
 
                 {/* Card 5 - Exit Recommendation */}
                 <div 
+                  ref={(el) => { cardRefs.current[4] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.45s" }}
                 >
@@ -436,6 +487,7 @@ export default function NammaMetro() {
 
                 {/* Card 6 - Last Mile Options */}
                 <div 
+                  ref={(el) => { cardRefs.current[5] = el }}
                   className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
                   style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.55s" }}
                 >
