@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { ArrowLeft } from "lucide-react"
+import { ArrowLeft, ArrowUpDown } from "lucide-react"
 
 export default function PlanJourney() {
   const router = useRouter()
@@ -10,6 +10,7 @@ export default function PlanJourney() {
   const [showInputCard, setShowInputCard] = useState(true)
   const [from, setFrom] = useState("")
   const [to, setTo] = useState("")
+  const [isButtonPressed, setIsButtonPressed] = useState(false)
 
   const handlePlanJourney = () => {
     setShowInputCard(false)
@@ -29,23 +30,39 @@ export default function PlanJourney() {
     }
   }
 
+  const handleSwap = () => {
+    const temp = from
+    setFrom(to)
+    setTo(temp)
+  }
+
   const CoachDiagram = () => (
     <div className="space-y-2">
       <div className="flex w-full">
         {[
-          { num: 1, color: "#DC2626", rounded: "rounded-l-lg" },
-          { num: 2, color: "#F59E0B", rounded: "" },
-          { num: 3, color: "#16A34A", rounded: "" },
-          { num: 4, color: "#16A34A", rounded: "" },
-          { num: 5, color: "#F59E0B", rounded: "" },
-          { num: 6, color: "#DC2626", rounded: "rounded-r-lg" },
+          { num: 1, color: "#DC2626", dots: 4, rounded: "rounded-l-lg" },
+          { num: 2, color: "#F59E0B", dots: 3, rounded: "" },
+          { num: 3, color: "#16A34A", dots: 1, rounded: "" },
+          { num: 4, color: "#16A34A", dots: 1, rounded: "" },
+          { num: 5, color: "#F59E0B", dots: 2, rounded: "" },
+          { num: 6, color: "#DC2626", dots: 3, rounded: "rounded-r-lg" },
         ].map((coach) => (
-          <div
-            key={coach.num}
-            className={`flex-1 h-8 flex items-center justify-center text-white font-bold text-sm ${coach.rounded}`}
-            style={{ backgroundColor: coach.color }}
-          >
-            {coach.num}
+          <div key={coach.num} className="flex-1 flex flex-col items-center">
+            <div
+              className={`w-full h-8 flex items-center justify-center text-white font-bold text-sm ${coach.rounded}`}
+              style={{ backgroundColor: coach.color }}
+            >
+              {coach.num}
+            </div>
+            <div className="flex gap-0.5 mt-1">
+              {Array.from({ length: coach.dots }).map((_, i) => (
+                <div
+                  key={i}
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: coach.color }}
+                />
+              ))}
+            </div>
           </div>
         ))}
       </div>
@@ -70,8 +87,8 @@ export default function PlanJourney() {
   )
 
   return (
-    <div className="min-h-screen bg-[#F5F3F7] flex items-center justify-center p-4">
-      <div className="w-full max-w-[390px] bg-[#F5F3F7] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
+    <div className="min-h-screen bg-[#F0EDF5] flex items-center justify-center p-4 transition-all duration-[250ms] ease-out">
+      <div className="w-full max-w-[390px] bg-[#F0EDF5] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
         {/* Header */}
         <header className="bg-[#6B21A8] px-4 py-4 flex items-center gap-3">
           <button onClick={handleBack} className="text-white">
@@ -84,35 +101,50 @@ export default function PlanJourney() {
         <div className="flex-1 overflow-y-auto pb-[128px]">
           {/* Input Card */}
           <div 
-            className={`m-4 bg-white rounded-2xl shadow-md p-4 transition-opacity duration-200 ${
+            className={`m-4 bg-white rounded-[16px] p-4 transition-all duration-[250ms] ease-out ${
               showInputCard ? "opacity-100" : "opacity-0 hidden"
             }`}
+            style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)" }}
           >
-            <div className="space-y-1">
-              <label className="text-xs text-gray-500">From</label>
-              <input
-                type="text"
-                placeholder="Your location"
-                value={from}
-                onChange={(e) => setFrom(e.target.value)}
-                className="w-full text-sm py-2 outline-none placeholder:text-gray-400"
-              />
-            </div>
-            <div className="border-t border-gray-200"></div>
-            <div className="space-y-1 pt-2">
-              <label className="text-xs text-gray-500">To</label>
-              <input
-                type="text"
-                placeholder="Destination"
-                value={to}
-                onChange={(e) => setTo(e.target.value)}
-                className="w-full text-sm py-2 outline-none placeholder:text-gray-400"
-              />
+            <div className="relative">
+              <div className="space-y-1">
+                <label className="text-xs text-gray-500">From</label>
+                <input
+                  type="text"
+                  placeholder="Your location"
+                  value={from}
+                  onChange={(e) => setFrom(e.target.value)}
+                  className="w-full text-sm py-2 outline-none placeholder:text-gray-400 border-b border-transparent focus:border-[#6B21A8] transition-colors"
+                />
+              </div>
+              
+              {/* Swap Button */}
+              <button 
+                onClick={handleSwap}
+                className="absolute right-0 top-1/2 -translate-y-1/2 w-8 h-8 bg-[#F3E8FF] rounded-full flex items-center justify-center"
+              >
+                <ArrowUpDown className="w-4 h-4 text-[#6B21A8]" />
+              </button>
+              
+              <div className="space-y-1 pt-2">
+                <label className="text-xs text-gray-500">To</label>
+                <input
+                  type="text"
+                  placeholder="Destination"
+                  value={to}
+                  onChange={(e) => setTo(e.target.value)}
+                  className="w-full text-sm py-2 outline-none placeholder:text-gray-400 border-b border-transparent focus:border-[#6B21A8] transition-colors"
+                />
+              </div>
             </div>
             <div className="pt-3">
               <button
                 onClick={handlePlanJourney}
-                className="w-full bg-[#6B21A8] text-white font-medium py-3 rounded-xl"
+                onMouseDown={() => setIsButtonPressed(true)}
+                onMouseUp={() => setIsButtonPressed(false)}
+                onMouseLeave={() => setIsButtonPressed(false)}
+                className="w-full bg-[#6B21A8] text-white font-medium py-3 rounded-xl transition-transform duration-100"
+                style={{ transform: isButtonPressed ? "scale(0.98)" : "scale(1)" }}
               >
                 Plan My Journey →
               </button>
@@ -127,8 +159,8 @@ export default function PlanJourney() {
             <>
               {/* Stepper Bar */}
               <div 
-                className="mx-4 mb-3 bg-white rounded-2xl p-3 animate-fade-in-up"
-                style={{ animationDelay: "0s" }}
+                className="mx-4 mb-3 bg-white rounded-[16px] p-3 animate-fade-in-up"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0s" }}
               >
                 <div className="flex items-center justify-between px-2">
                   {["Walk", "Metro", "Change", "Exit", "Ride"].map((label, index) => (
@@ -145,10 +177,10 @@ export default function PlanJourney() {
 
               {/* Card 1 - Walk to Station */}
               <div 
-                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
-                style={{ animationDelay: "0.1s" }}
+                className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.1s" }}
               >
-                <div className="w-1 bg-[#6B21A8]"></div>
+                <div className="w-1 bg-[#6B21A8] self-stretch"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -168,10 +200,10 @@ export default function PlanJourney() {
 
               {/* Card 2 - Board Metro */}
               <div 
-                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
-                style={{ animationDelay: "0.2s" }}
+                className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.2s" }}
               >
-                <div className="w-1 bg-[#6B21A8]"></div>
+                <div className="w-1 bg-[#6B21A8] self-stretch"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -194,10 +226,10 @@ export default function PlanJourney() {
 
               {/* Card 3 - Peak Hour Alert */}
               <div 
-                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
-                style={{ animationDelay: "0.3s" }}
+                className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.3s" }}
               >
-                <div className="w-1 bg-[#F59E0B]"></div>
+                <div className="w-1 bg-[#F59E0B] self-stretch"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -220,10 +252,10 @@ export default function PlanJourney() {
 
               {/* Card 4 - Exit Recommendation */}
               <div 
-                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
-                style={{ animationDelay: "0.4s" }}
+                className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.4s" }}
               >
-                <div className="w-1 bg-[#16A34A]"></div>
+                <div className="w-1 bg-[#16A34A] self-stretch"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
@@ -245,10 +277,10 @@ export default function PlanJourney() {
 
               {/* Card 5 - Last Mile Options */}
               <div 
-                className="mx-4 mb-3 bg-white rounded-2xl shadow-sm overflow-hidden flex animate-fade-in-up"
-                style={{ animationDelay: "0.5s" }}
+                className="mx-4 mb-3 bg-white rounded-[16px] overflow-hidden flex animate-fade-in-up"
+                style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.07)", animationDelay: "0.5s" }}
               >
-                <div className="w-1 bg-[#0EA5E9]"></div>
+                <div className="w-1 bg-[#0EA5E9] self-stretch"></div>
                 <div className="flex-1 p-4">
                   <div className="flex items-center gap-2 mb-3">
                     <span className="text-lg">🛵</span>
@@ -256,7 +288,7 @@ export default function PlanJourney() {
                   </div>
 
                   {/* Row 1 - Rapido */}
-                  <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center justify-between py-2 px-2 rounded-lg bg-[#F0FDF4]">
                     <div className="flex items-center gap-2">
                       <span>🛵</span>
                       <span className="text-sm">Rapido Bike</span>
@@ -273,7 +305,7 @@ export default function PlanJourney() {
                     </div>
                   </div>
 
-                  <div className="border-t border-gray-100"></div>
+                  <div className="border-t border-gray-100 my-1"></div>
 
                   {/* Row 2 - Ola Auto */}
                   <div className="flex items-center justify-between py-2">
@@ -314,13 +346,33 @@ export default function PlanJourney() {
 
         {/* Fixed Bottom Bar */}
         <div 
-          className={`absolute bottom-0 left-0 right-0 bg-[#6B21A8] h-12 flex items-center justify-center transition-all duration-300 ${
+          className={`absolute bottom-0 left-0 right-0 bg-[#6B21A8] transition-all duration-300 ${
             showResults ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
           }`}
         >
-          <span className="text-white text-xs">
-            Total: 28 min · ₹38–65 · Save ₹172 vs direct Ola
-          </span>
+          {/* White top divider */}
+          <div className="h-px bg-white/30"></div>
+          
+          {/* Stat Bar */}
+          <div className="flex h-14">
+            {/* Time Section */}
+            <div className="flex-1 flex flex-col items-center justify-center border-r border-white/20">
+              <span className="text-[10px] text-gray-200">Duration</span>
+              <span className="text-white font-bold text-sm">28 min</span>
+            </div>
+            
+            {/* Cost Section */}
+            <div className="flex-1 flex flex-col items-center justify-center border-r border-white/20">
+              <span className="text-[10px] text-gray-200">Cost</span>
+              <span className="text-white font-bold text-sm">₹38–65</span>
+            </div>
+            
+            {/* Savings Section */}
+            <div className="flex-1 flex flex-col items-center justify-center">
+              <span className="text-[10px] text-gray-200">vs Direct Ola</span>
+              <span className="text-white font-bold text-sm">Save ₹172</span>
+            </div>
+          </div>
         </div>
       </div>
 

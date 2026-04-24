@@ -52,8 +52,8 @@ export default function NammaMetro() {
   ]
 
   return (
-    <div className="min-h-screen bg-[#F5F3F7] flex items-center justify-center p-4">
-      <div className="w-full max-w-[390px] bg-[#F5F3F7] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
+    <div className="min-h-screen bg-[#F0EDF5] flex items-center justify-center p-4 transition-all duration-[250ms] ease-out">
+      <div className="w-full max-w-[390px] bg-[#F0EDF5] min-h-[700px] flex flex-col rounded-3xl overflow-hidden shadow-2xl relative">
         {/* Header */}
         <header className="bg-[#6B21A8] px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -80,10 +80,15 @@ export default function NammaMetro() {
                 key={index}
                 onClick={() => handleTileClick(tile.isNew)}
                 className={`
-                  aspect-square rounded-xl flex flex-col items-center justify-center gap-2 relative cursor-pointer
-                  ${tile.icon ? "bg-white shadow-sm" : "bg-white shadow-sm"}
+                  aspect-square rounded-[16px] flex flex-col items-center justify-center gap-2 relative cursor-pointer transition-all duration-[250ms] ease-out
                   ${tile.isNew ? "border-2 border-[#E9D5FF]" : ""}
                 `}
+                style={{
+                  boxShadow: "0 2px 12px rgba(0,0,0,0.07)",
+                  background: tile.isNew 
+                    ? "linear-gradient(to bottom, #FAFAFF, #F3E8FF)" 
+                    : "#FFFFFF"
+                }}
               >
                 {tile.isNew && (
                   <div className="absolute -top-1 -right-1 bg-[#6B21A8] text-white text-[10px] font-bold px-2 py-0.5 rounded-full">
@@ -93,7 +98,7 @@ export default function NammaMetro() {
                 {tile.icon && (
                   <>
                     <tile.icon
-                      className={`w-8 h-8 ${tile.isNew ? "text-[#6B21A8]" : "text-[#6B21A8]"}`}
+                      className="w-8 h-8 text-[#6B21A8]"
                       strokeWidth={1.5}
                     />
                     <span
@@ -126,7 +131,7 @@ export default function NammaMetro() {
 
         {/* Toast Message */}
         <div
-          className={`absolute bottom-24 left-1/2 -translate-x-1/2 bg-gray-700 text-white text-sm px-4 py-2 rounded-lg transition-all duration-300 ${
+          className={`absolute bottom-24 left-1/2 -translate-x-1/2 bg-[#1F2937] text-white text-[13px] px-5 py-2.5 rounded-xl transition-all duration-300 ${
             showToast ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
           }`}
         >
