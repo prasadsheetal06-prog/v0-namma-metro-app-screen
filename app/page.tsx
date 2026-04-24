@@ -29,6 +29,8 @@ export default function NammaMetro() {
   const [to, setTo] = useState("")
   const [isButtonPressed, setIsButtonPressed] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
+  const [showMapModal, setShowMapModal] = useState(false)
+  const [mapModalType, setMapModalType] = useState<"from" | "to">("from")
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const cardRefs = useRef<(HTMLDivElement | null)[]>([])
 
@@ -109,6 +111,20 @@ export default function NammaMetro() {
 
   const handleOpenMaps = (message: string) => {
     showToastMessage(message)
+  }
+
+  const openMapModal = (type: "from" | "to") => {
+    setMapModalType(type)
+    setShowMapModal(true)
+  }
+
+  const confirmMapLocation = () => {
+    if (mapModalType === "from") {
+      setFrom("📍 Location pinned")
+    } else {
+      setTo("📍 Location pinned")
+    }
+    setShowMapModal(false)
   }
   
   const tiles = [
@@ -245,6 +261,12 @@ export default function NammaMetro() {
                     onChange={(e) => setFrom(e.target.value)}
                     className="w-full text-sm py-2 outline-none placeholder:text-gray-400 border-b border-transparent focus:border-[#6B21A8] transition-colors"
                   />
+                  <button 
+                    onClick={() => openMapModal("from")}
+                    className="text-[11px] text-[#9CA3AF] cursor-pointer"
+                  >
+                    📍 Pin your location on map →
+                  </button>
                 </div>
                 
                 <button 
@@ -263,6 +285,12 @@ export default function NammaMetro() {
                     onChange={(e) => setTo(e.target.value)}
                     className="w-full text-sm py-2 outline-none placeholder:text-gray-400 border-b border-transparent focus:border-[#6B21A8] transition-colors"
                   />
+                  <button 
+                    onClick={() => openMapModal("to")}
+                    className="text-[11px] text-[#9CA3AF] cursor-pointer"
+                  >
+                    📍 Pin destination on map →
+                  </button>
                 </div>
               </div>
               <div className="pt-3">
@@ -371,10 +399,13 @@ export default function NammaMetro() {
                     </p>
                     {/* Train Timing Box */}
                     <div className="bg-white border-l-4 border-[#6B21A8] rounded-lg p-3" style={{ boxShadow: "0 1px 4px rgba(0,0,0,0.08)" }}>
-                      <p className="text-[#6B21A8] font-bold text-base">🕐 Next train: 3 min</p>
-                      <p className="text-gray-500 text-xs mt-1">Then every 6 min after that</p>
+                      <span className="inline-block bg-[#F3E8FF] rounded-lg px-3 py-1.5">
+                        <span className="text-[#6B21A8] font-bold text-[15px]">🕐 Next train: 3 min</span>
+                      </span>
+                      <p className="text-gray-500 text-xs mt-2">Then every 6 min after that</p>
                       <p className="text-[#D97706] text-[11px] italic mt-1">Tip: Trains from Whitefield are less crowded at peak hour</p>
                     </div>
+                    <p className="text-[10px] text-[#9CA3AF] mt-2">Fare: ₹57 stored value card · ₹60 token</p>
                   </div>
                 </div>
 
@@ -426,11 +457,14 @@ export default function NammaMetro() {
                         Platform 1
                       </span>
                     </div>
-                    <p className="text-xs text-gray-600 leading-relaxed mb-2">
+                    <p className="text-xs text-gray-600 leading-relaxed mb-3">
                       Board the Yellow Line — it is the yellow colored train. Stay on for 4 stops and get off when you hear Mantri Square announced.
                     </p>
-                    <p className="text-xs text-gray-500">
-                      Next train: 3 min · Then every 8 min
+                    <span className="inline-block bg-[#F3E8FF] rounded-lg px-3 py-1.5">
+                      <span className="text-[#6B21A8] font-bold text-[15px]">🕐 Next train: 3 min</span>
+                    </span>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Then every 8 min after that
                     </p>
                   </div>
                 </div>
@@ -569,6 +603,39 @@ export default function NammaMetro() {
         >
           {toastMessage}
         </div>
+
+        {/* Map Modal */}
+        {showMapModal && (
+          <div className="absolute inset-0 z-50 flex items-center justify-center">
+            {/* Overlay */}
+            <div 
+              className="absolute inset-0 bg-black/50"
+              onClick={() => setShowMapModal(false)}
+            ></div>
+            {/* Modal Card */}
+            <div className="relative bg-white w-[300px] rounded-2xl p-5">
+              <h3 className="font-bold text-sm mb-4">Pin Your Location</h3>
+              <div className="w-full h-40 bg-[#EDE9FE] rounded-xl flex flex-col items-center justify-center">
+                <span className="text-4xl mb-2">📍</span>
+                <span className="text-xs text-gray-500">Tap anywhere to drop a pin</span>
+              </div>
+              <div className="flex gap-3 mt-4">
+                <button 
+                  onClick={() => setShowMapModal(false)}
+                  className="flex-1 py-2 border border-gray-300 text-gray-600 rounded-full text-sm"
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmMapLocation}
+                  className="flex-1 py-2 bg-[#6B21A8] text-white rounded-full text-sm"
+                >
+                  Confirm
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Custom Animation Styles */}
